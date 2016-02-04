@@ -13,7 +13,7 @@ created by wesc on 2014 apr 21
 __author__ = 'wesc+api@google.com (Wesley Chun)'
 
 
-from datetime import datetime
+from datetime import datetime, time
 
 import logging
 
@@ -574,6 +574,10 @@ class ConferenceApi(remote.Service):
         form = SessionForm()
         for field in form.all_fields():
             if hasattr(session, field.name):
+                # convert Time and date types to string; just copy others
+                if field.name.endswith('Time') or field.name.startswith('date'):
+                    setattr(form, field.name, str(getattr(session, field.name)))
+                else:
                     setattr(form, field.name, getattr(session, field.name))
             elif field.name == "websafeKey":
                 setattr(form, field.name, session.key.urlsafe())
@@ -597,6 +601,15 @@ class ConferenceApi(remote.Service):
         s_key = ndb.Key(Session, s_id[0], parent=c_key)
 
         data['key'] = s_key
+
+        if data['date']:
+            data['date'] = datetime.strptime(data['date'][:10], '%Y-%m-%d').date()
+
+        if data['startTime']:
+            data['startTime'] = datetime.strptime(data['startTime'], '%H:%M').time()
+
+        if data['durationTime']:
+            data['durationTime'] = datetime.strptime(data['durationTime'], '%H:%M').time()
 
         # create Session
         session = Session(**data).put()
@@ -727,6 +740,17 @@ class ConferenceApi(remote.Service):
 
         # return set of ConferenceForm objects per Conference
         return SessionForms(items=[self._copySessionToForm(session) for session in sessions])
+
+
+    @endpoints.method(message_types.VoidMessage, SessionForms,
+                      path='expiredSessions',
+                      http_method='GET',
+                      name='getExpiredSessions')
+    def getExpiredSessions(self, request):
+        """Return sessions that have already happened"""
+        now = datetime.datetime.now()
+
+        sessions = Session.query(Session.startTime == speaker)
 
 
 api = endpoints.api_server([ConferenceApi]) # register API
