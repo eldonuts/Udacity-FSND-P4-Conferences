@@ -16,6 +16,7 @@ import httplib
 import endpoints
 from protorpc import messages
 from google.appengine.ext import ndb
+from datetime import datetime, timedelta
 
 class ConflictException(endpoints.ServiceException):
     """ConflictException -- exception mapped to HTTP 409 response"""
@@ -114,11 +115,19 @@ class Session(ndb.Model):
     name = ndb.StringProperty(required=True)
     highlights = ndb.StringProperty()
     speaker = ndb.StringProperty()
-    durationTime = ndb.TimeProperty()
+    durationTime = ndb.TimeProperty(required=True)
     typeOfSession = ndb.StringProperty()
-    date = ndb.DateProperty()
-    startTime = ndb.TimeProperty()
+    date = ndb.DateProperty(required=True)
+    startTime = ndb.TimeProperty(required=True)
+    endTime = ndb.ComputedProperty(lambda self: self.getSessionEndTime())
     parentConferenceName = ndb.StringProperty()
+
+    def getSessionEndTime(self):
+        startDateTime = datetime.combine(self.date, self.startTime)
+        durationH = self.durationTime.strftime('%-H')
+        durationM = self.durationTime.strftime('%-M')
+        endtime = startDateTime + timedelta(hours=int(durationH), minutes=int(durationM))
+        return endtime
 
 class SessionForm(messages.Message):
     name = messages.StringField(1)

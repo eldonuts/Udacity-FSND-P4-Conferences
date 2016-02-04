@@ -743,14 +743,13 @@ class ConferenceApi(remote.Service):
 
 
     @endpoints.method(message_types.VoidMessage, SessionForms,
-                      path='expiredSessions',
+                      path='finishedSessions',
                       http_method='GET',
-                      name='getExpiredSessions')
-    def getExpiredSessions(self, request):
-        """Return sessions that have already happened"""
-        now = datetime.datetime.now()
-
-        sessions = Session.query(Session.startTime == speaker)
+                      name='getFinishedSessions')
+    def getFinishedSessions(self, request):
+        """Return sessions that have already finished"""
+        sessions = Session.query(Session.endTime < datetime.now())
+        return SessionForms(items=[self._copySessionToForm(session) for session in sessions])
 
 
 api = endpoints.api_server([ConferenceApi]) # register API
