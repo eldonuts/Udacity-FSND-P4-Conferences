@@ -16,7 +16,7 @@ import httplib
 import endpoints
 from protorpc import messages
 from google.appengine.ext import ndb
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time, date
 
 class ConflictException(endpoints.ServiceException):
     """ConflictException -- exception mapped to HTTP 409 response"""
@@ -121,8 +121,9 @@ class Session(ndb.Model):
     typeOfSession = ndb.StringProperty()
     date = ndb.DateProperty(required=True)
     startTime = ndb.TimeProperty(required=True)
-    endTime = ndb.ComputedProperty(lambda self: self.getSessionEndTime())
+    endDateTime = ndb.ComputedProperty(lambda self: self.getSessionEndTime())
     parentConferenceName = ndb.StringProperty()
+    finishBeforeSeven = ndb.ComputedProperty(lambda self: self.getBeforeSeven())
 
     def getSessionEndTime(self):
         startDateTime = datetime.combine(self.date, self.startTime)
@@ -130,6 +131,13 @@ class Session(ndb.Model):
         durationM = self.durationTime.strftime('%-M')
         endtime = startDateTime + timedelta(hours=int(durationH), minutes=int(durationM))
         return endtime
+
+    def getBeforeSeven(self):
+        if self.endDateTime.time() <= time(19, 0):
+            return True
+        else:
+            return False
+
 
 class SessionForm(messages.Message):
     name = messages.StringField(1)
@@ -140,6 +148,14 @@ class SessionForm(messages.Message):
     date = messages.StringField(6)
     startTime = messages.StringField(7)
     websafeKey = messages.StringField(8)
+
+class Speaker(ndb.Model):
+    name = ndb.StringProperty(required=True)
+    sessions = ndb.StringProperty(repeated=True)
+
+class SpeakerForm(messages.Message):
+    name = messages.StringField(1)
+    sessions = messages.StringField(2, repeated=True)
 
 class SessionForms(messages.Message):
     items = messages.MessageField(SessionForm, 1, repeated=True)

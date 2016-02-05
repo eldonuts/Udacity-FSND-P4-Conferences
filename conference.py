@@ -13,7 +13,7 @@ created by wesc on 2014 apr 21
 __author__ = 'wesc+api@google.com (Wesley Chun)'
 
 
-from datetime import datetime, time
+from datetime import datetime, time, date
 
 import logging
 
@@ -41,6 +41,8 @@ from models import StringMessage
 from models import Session
 from models import SessionForm
 from models import SessionForms
+from models import Speaker
+from models import SpeakerForm
 
 
 
@@ -693,6 +695,20 @@ class ConferenceApi(remote.Service):
         # get the newly created Session so we can pass back the websafeKey
         new_session = session.get()
 
+        if data['speaker']:
+            try:
+                speaker = Speaker.query(Speaker.name == data['speaker']).fetch()[0]
+            except:
+                new_speaker = Speaker(name=data['speaker'])
+                speaker_key = new_speaker.put()
+                speaker = speaker_key.get()
+
+            speaker.sessions.append(new_session.key.urlsafe())
+            speaker.put()
+
+            if len(speaker.sessions) >= 2:
+                print speaker.name + " is doing 2 or more sessions"
+
         return self._copySessionToForm(new_session)
 
     @endpoints.method(SESSION_POST_REQUEST, SessionForm,
@@ -817,14 +833,62 @@ class ConferenceApi(remote.Service):
         # return set of ConferenceForm objects per Conference
         return SessionForms(items=[self._copySessionToForm(session) for session in sessions])
 
-
     @endpoints.method(message_types.VoidMessage, SessionForms,
                       path='finishedSessions',
                       http_method='GET',
                       name='getFinishedSessions')
     def getFinishedSessions(self, request):
         """Return sessions that have already finished"""
-        sessions = Session.query(Session.endTime < datetime.now())
+        sessions = Session.query(Session.endDateTime < datetime.now())
         return SessionForms(items=[self._copySessionToForm(session) for session in sessions])
+
+    @endpoints.method(message_types.VoidMessage, SessionForms,
+                      path='NonWorkshopsBefore7',
+                      http_method='GET',
+                      name='getNonWorkshopsBefore7')
+    def NonWorkshopsBefore7(self, request):
+        """Return sessions that aren't workshops and finish before 7"""
+        sessions = Session.query(Session.finishBeforeSeven == True)
+        sessions = sessions.filter(Session.typeOfSession != ('workshop' or 'Workshop'))
+        return SessionForms(items=[self._copySessionToForm(session) for session in sessions])
+
+
+# - - - Featured Speakers - - - - - - - - - - - - - - - - - - - -
+
+    @staticmethod
+    def _cacheFeaturedSpeaker():
+        """Create featured speaker & assign to memcache; used by
+        memcache cron job.
+        """
+        sessions = Session.query(Session.speaker)
+
+        if sessions:
+            # If there are almost sold out conferences,
+            # format announcement and set it in memcache
+            announcement = '%s %s' % (
+                'Last chance to attend! The following conferences '
+                'are nearly sold out:',
+                ', '.join(conf.name for conf in confs))
+            memcache.set(MEMCACHE_ANNOUNCEMENTS_KEY, announcement)
+        else:
+            # If there are no sold out conferences,
+            # delete the memcache announcements entry
+            announcement = ""
+            memcache.delete(MEMCACHE_ANNOUNCEMENTS_KEY)
+
+        return announcement
+
+
+    @endpoints.method(message_types.VoidMessage, StringMessage,
+            path='conference/announcement/get',
+            http_method='GET', name='getAnnouncement')
+    def getAnnouncement(self, request):
+        """Return Announcement from memcache."""
+        get_announcement = memcache.get(MEMCACHE_ANNOUNCEMENTS_KEY)
+        if get_announcement:
+            announcement = get_announcement
+        else:
+            announcement = ""
+        return StringMessage(data=announcement)
 
 api = endpoints.api_server([ConferenceApi]) # register API
