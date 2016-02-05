@@ -29,6 +29,7 @@ class Profile(ndb.Model):
     teeShirtSize = ndb.StringProperty(default='NOT_SPECIFIED')
     conferenceKeysToAttend = ndb.StringProperty(repeated=True)
     sessionsInWishlist = ndb.StringProperty(repeated=True)
+    interestedTopics = ndb.StringProperty(repeated=True)
 
 class ProfileMiniForm(messages.Message):
     """ProfileMiniForm -- update Profile form message"""
@@ -42,6 +43,7 @@ class ProfileForm(messages.Message):
     teeShirtSize = messages.EnumField('TeeShirtSize', 3)
     conferenceKeysToAttend = messages.StringField(4, repeated=True)
     sessionsInWishlist = messages.StringField(5, repeated=True)
+    interestedTopics = messages.StringField(6, repeated=True)
 
 class BooleanMessage(messages.Message):
     """BooleanMessage-- outbound Boolean value message"""

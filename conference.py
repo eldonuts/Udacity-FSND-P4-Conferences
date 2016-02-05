@@ -113,6 +113,11 @@ WISHLIST_GET_REQUEST = endpoints.ResourceContainer(
     SessionKey=messages.StringField(1),
 )
 
+INTERESTED_POST_REQUEST = endpoints.ResourceContainer(
+    message_types.VoidMessage,
+    interestedTopic=messages.StringField(1),
+)
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -124,7 +129,7 @@ class ConferenceApi(remote.Service):
 
 # - - - Conference objects - - - - - - - - - - - - - - - - -
 
-    def _copyConferenceToForm(self, conf, displayName):
+    def _copyConferenceToForm(self, conf, displayName=None):
         """Copy relevant fields from Conference to ConferenceForm."""
         cf = ConferenceForm()
         for field in cf.all_fields():
@@ -432,6 +437,77 @@ class ConferenceApi(remote.Service):
     def saveProfile(self, request):
         """Update & return user profile."""
         return self._doProfile(request)
+
+# - - - Profile: Interested Topics - - - - - - - - - - - - -
+
+    def _intestedTopic(self, request, add=True):
+        retval = None
+        prof = self._getProfileFromUser()  # get user Profile
+
+        request_topic = request.interestedTopic
+        interested = prof.interestedTopics
+
+        # add
+        if add:
+            # check if user already registered otherwise add
+            if request_topic in interested:
+                raise ConflictException(
+                    "You alreday have this in your interested topics")
+
+            # add to wishlist
+            prof.interestedTopics.append(request_topic)
+            retval = True
+
+        # remove
+        else:
+            # check if user already registered
+            if request_topic in interested:
+                prof.interestedTopics.remove(request_topic)
+                retval = True
+            else:
+                retval = False
+
+        # write things back to the datastore & return
+        prof.put()
+        return BooleanMessage(data=retval)
+
+
+    @endpoints.method(INTERESTED_POST_REQUEST, BooleanMessage,
+            path='topicfav/add',
+            http_method='POST',
+            name='addTopicInterested')
+    def addTopicInterested(self, request):
+        """Add topic to current users interested topics"""
+        return self._intestedTopic(request)
+
+    @endpoints.method(INTERESTED_POST_REQUEST, BooleanMessage,
+            path='topicfav/delete',
+            http_method='POST',
+            name='deleteTopicInterested')
+    def deleteTopicInterested(self, request):
+        """Remove topic from users interested topics"""
+        return self._intestedTopic(request, add=False)
+
+
+    @endpoints.method(message_types.VoidMessage, ConferenceForms,
+            path='getConferencesWithTopics',
+            http_method='POST', name='getConferencesWithTopics')
+    def getConferencesWithTopics(self, request):
+        """Return conferences that match current users interests."""
+        # make sure user is authed
+        user = endpoints.get_current_user()
+        if not user:
+            raise endpoints.UnauthorizedException('Authorization required')
+
+        user_id = getUserId(user)
+        prof = ndb.Key(Profile, user_id).get()
+
+        confs = Conference.query(Conference.topics.IN(prof.interestedTopics))
+
+        # return set of ConferenceForm objects per Conference
+        return ConferenceForms(
+            items=[self._copyConferenceToForm(conf) for conf in confs]
+        )
 
 
 # - - - Registration - - - - - - - - - - - - - - - - - - - -
@@ -750,6 +826,5 @@ class ConferenceApi(remote.Service):
         """Return sessions that have already finished"""
         sessions = Session.query(Session.endTime < datetime.now())
         return SessionForms(items=[self._copySessionToForm(session) for session in sessions])
-
 
 api = endpoints.api_server([ConferenceApi]) # register API
