@@ -42,7 +42,7 @@ class SetFeaturedSpeakerHandler(webapp2.RequestHandler):
     def post(self):
         """Set Featured Speakers in Memcache."""
         speaker_key = self.request.get('speaker_key')
-        ConferenceApi._cacheFeaturedSpeaker(speaker_key)
+        ConferenceApi._cache_featured_speaker(speaker_key)
 
 app = webapp2.WSGIApplication([
     ('/crons/set_announcement', SetAnnouncementHandler),
