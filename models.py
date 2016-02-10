@@ -126,6 +126,7 @@ class StringMessage(messages.Message):
 
 
 class Session(ndb.Model):
+    """Session - Session Object"""
     name = ndb.StringProperty(required=True)
     highlights = ndb.StringProperty()
     speaker = ndb.StringProperty()
@@ -152,6 +153,7 @@ class Session(ndb.Model):
 
 
 class SessionForm(messages.Message):
+    """SessionForm = Session outbound form message"""
     name = messages.StringField(1)
     highlights = messages.StringField(2)
     speaker = messages.StringField(3)
@@ -162,10 +164,15 @@ class SessionForm(messages.Message):
     websafeKey = messages.StringField(8)
 
 
+class SessionForms(messages.Message):
+    """SessionForms - Multiple SessionForm outbound form messages"""
+    items = messages.MessageField(SessionForm, 1, repeated=True)
+
+
 class Speaker(ndb.Model):
+    """Speaker - Speaker Object"""
     name = ndb.StringProperty(required=True)
     sessions = ndb.StringProperty(repeated=True)
 
 
-class SessionForms(messages.Message):
-    items = messages.MessageField(SessionForm, 1, repeated=True)
+
