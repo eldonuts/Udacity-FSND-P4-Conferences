@@ -723,7 +723,7 @@ class ConferenceApi(remote.Service):
         return q
 
     def _get_sessions_by_type(self, websafeConferenceKey, typeOfSession):
-        q = Session.query(ancestor=ndb.Key(Conference, websafeConferenceKey))
+        q = Session.query(ancestor=ndb.Key(urlsafe=websafeConferenceKey))
         q = q.filter(Session.typeOfSession == typeOfSession)
         return q
 
