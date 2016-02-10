@@ -46,7 +46,7 @@ My two additional queries were:
 - getFinishedSessions: This retrieved session that has already happened (UTC time)
 - getConferencesWithTopics (with additional support methods addTopicInterested and deleteTopicInterested): The methods were used to add interested topics to a users profile, and then could be used to tell what Conferences contained any of those topics.
 
-To solve the query related problem I created a Computed Property (mentioned in Task 1 notes) that worked out if the conferenced finished after 7. Then I simply made a new method that used this property and filtered out workshops (getNonWorkshopsBefore7).
+As for the query related problem (sessions after 7 that weren't workshops), the main problem I saw was there was no way to know when the sessions were going to finish. To solve this, I created a Computed Property (mentioned in Task 1 notes) that worked out if the conferenced finished after 7. Then I simply made a new method that used this property and filtered out workshops (getNonWorkshopsBefore7).
 
 ## Task 4
 I implemented this as per the project requirements.
