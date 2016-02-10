@@ -646,6 +646,17 @@ class ConferenceApi(remote.Service):
 
     def _create_session_object(self, request):
         """Create the session object and put into datastore"""
+        user = endpoints.get_current_user()
+        if not user:
+            raise endpoints.UnauthorizedException('Authorization required')
+        user_id = getUserId(user)
+
+        c_key = ndb.Key(urlsafe=request.websafeConferenceKey)
+        conference = c_key.get()
+
+        # Do checks
+        if user_id != conference.organizerUserId:
+            raise endpoints.BadRequestException("Current user not authorised to add session for this conference")
         if not request.name:
             raise endpoints.BadRequestException("Session 'name' field required")
         if not request.durationTime:
@@ -660,7 +671,7 @@ class ConferenceApi(remote.Service):
         del data['websafeConferenceKey']
         del data['websafeKey']
 
-        c_key = ndb.Key(urlsafe=request.websafeConferenceKey)
+
 
         s_id = Session.allocate_ids(size=1, parent=c_key)
         s_key = ndb.Key(Session, s_id[0], parent=c_key)
