@@ -863,12 +863,6 @@ class ConferenceApi(remote.Service):
                     speaker.name, '| Sessions:',
                     ', '.join(speaker.sessions))
                 memcache.set(MEMCACHE_FEATURED_SPEAKERS_KEY, featured)
-            else:
-                # delete the memcache speakers entry
-                featured = ""
-                memcache.delete(MEMCACHE_FEATURED_SPEAKERS_KEY)
-
-        return featured
 
     @endpoints.method(message_types.VoidMessage, StringMessage,
                       path='conference/featured_speaker/get',
