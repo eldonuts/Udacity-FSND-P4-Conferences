@@ -871,11 +871,7 @@ class ConferenceApi(remote.Service):
     def get_announcement(self, request):
         """Return Announcement from memcache."""
         get_speaker = memcache.get(MEMCACHE_FEATURED_SPEAKERS_KEY)
-        if get_speaker:
-            speaker = get_speaker
-        else:
-            speaker = ""
-        return StringMessage(data=speaker)
+        return StringMessage(data=get_speaker or '')
 
 
 api = endpoints.api_server([ConferenceApi])  # register API
