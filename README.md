@@ -34,7 +34,7 @@ App Engine application for the Udacity training course.
 ### Project Notes
 
 ## Task 1
-#Design Choices (Response)
+###Design Choices (Response)
 I decided that to efficiently structure the session functionality, Kinds needed to be created for Session and Speaker. The Session has a relationship with each Conferernce. For the relationship between session and speaker, I chose to allow user string input for the speaker so that they didn't have to create a speaker entity first, they could just type them in and the application would create the entity for them. This does require each speaker to have a different name. 
 
 As for the added Session model object, most properties were simple strings but the following were also included:
@@ -45,10 +45,10 @@ As for the added Session model object, most properties were simple strings but t
 -finishBeforeSeven: Same as above, but returns a boolean value so we can easily tell if the session finishes before 7pm.
 
 ## Task 3
-#Additional Queries
+###Additional Queries
 My two additional queries were:
 - getFinishedSessions: This retrieved session that has already happened (UTC time)
 - getConferencesWithTopics (with additional support methods addTopicInterested and deleteTopicInterested): The methods were used to add interested topics to a users profile, and then could be used to tell what Conferences contained any of those topics.
 
-#Query Problem
+###Query Problem
 The main problem I saw was there was no way to know when the sessions were going to finish. To solve this, I created a Computed Property (mentioned in Task 1 notes) that worked out if the conferenced finished after 7. Additionally, there was no start datetime property, so the date and start time properties needed to be combined before the duration time could be added. Then I simply made a new method that used the calculated property and filtered out workshops (getNonWorkshopsBefore7)
