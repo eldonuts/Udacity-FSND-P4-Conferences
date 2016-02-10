@@ -34,19 +34,21 @@ App Engine application for the Udacity training course.
 ### Project Notes
 
 ## Task 1
-The first step was deciding how to structure the sessions. This was easy, as I knew the best way to do this was to define sessions as a new Kind. Most of my design was based around the Conferences Kind, taking inspiration where needed. I also decided that the speaker should have its own Kind, as it will be much nicer to work with in the later Tasks (I actually decided this later on).
+#Design Choices (Response)
+I decided that to efficiently structure the session functionality, Kinds needed to be created for Session and Speaker. The Session has a relationship with each Conferernce. For the relationship between session and speaker, I chose to allow user string input for the speaker so that they didn't have to create a speaker entity first, they could just type them in and the application would create the entity for them. This does require each speaker to have a different name. 
 
-I also added some Computer Properties that are updated when each session is updated so I could get extra info such as the end time, and if they finished before 7 or not.
-
-## Task 2
-Wishlist methods were added as required.
+As for the added Session model object, most properties were simple strings but the following were also included:
+-durationMinutes: IntergerProperty used so it was easier to add to the start time to get the end time.
+-date: DateProperty used to make sure the data in a formate that could be combined with startTime easily and used to compare.
+-startTime: TimeProperty used to make sure the data in a formate that could be combined with date easily and used to compare.
+-endDateTime: ComputedProperty used rather than builtin Python @property so that whenever the entity is changed this will update.
+-finishBeforeSeven: Same as above, but returns a boolean value so we can easily tell if the session finishes before 7pm.
 
 ## Task 3
+#Additional Queries
 My two additional queries were:
 - getFinishedSessions: This retrieved session that has already happened (UTC time)
 - getConferencesWithTopics (with additional support methods addTopicInterested and deleteTopicInterested): The methods were used to add interested topics to a users profile, and then could be used to tell what Conferences contained any of those topics.
 
-As for the query related problem (sessions after 7 that weren't workshops), the main problem I saw was there was no way to know when the sessions were going to finish. To solve this, I created a Computed Property (mentioned in Task 1 notes) that worked out if the conferenced finished after 7. Then I simply made a new method that used this property and filtered out workshops (getNonWorkshopsBefore7).
-
-## Task 4
-I implemented this as per the project requirements.
+#Query Problem
+The main problem I saw was there was no way to know when the sessions were going to finish. To solve this, I created a Computed Property (mentioned in Task 1 notes) that worked out if the conferenced finished after 7. Additionally, there was no start datetime property, so the date and start time properties needed to be combined before the duration time could be added. Then I simply made a new method that used the calculated property and filtered out workshops (getNonWorkshopsBefore7)
