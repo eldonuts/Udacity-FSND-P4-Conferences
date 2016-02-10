@@ -671,8 +671,6 @@ class ConferenceApi(remote.Service):
         del data['websafeConferenceKey']
         del data['websafeKey']
 
-
-
         s_id = Session.allocate_ids(size=1, parent=c_key)
         s_key = ndb.Key(Session, s_id[0], parent=c_key)
 
@@ -721,7 +719,7 @@ class ConferenceApi(remote.Service):
 
     def _get_sessions(self, websafeConferenceKey):
         """Return formatted query from the submitted filters."""
-        q = Session.query(ancestor=ndb.Key(Conference, websafeConferenceKey))
+        q = Session.query(ancestor=ndb.Key(urlsafe=websafeConferenceKey))
         return q
 
     def _get_sessions_by_type(self, websafeConferenceKey, typeOfSession):
