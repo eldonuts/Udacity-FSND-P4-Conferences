@@ -659,8 +659,8 @@ class ConferenceApi(remote.Service):
             raise endpoints.BadRequestException("Current user not authorised to add session for this conference")
         if not request.name:
             raise endpoints.BadRequestException("Session 'name' field required")
-        if not request.durationTime:
-            raise endpoints.BadRequestException("Session 'durationTime' field required")
+        if not request.durationMinutes:
+            raise endpoints.BadRequestException("Session 'durationMinutes' field required")
         if not request.date:
             raise endpoints.BadRequestException("Session 'date' field required")
         if not request.startTime:
@@ -681,9 +681,6 @@ class ConferenceApi(remote.Service):
 
         if data['startTime']:
             data['startTime'] = datetime.strptime(data['startTime'], '%H:%M').time()
-
-        if data['durationTime']:
-            data['durationTime'] = datetime.strptime(data['durationTime'], '%H:%M').time()
 
         # create Session
         session = Session(**data).put()

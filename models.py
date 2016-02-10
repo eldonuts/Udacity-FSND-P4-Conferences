@@ -130,7 +130,7 @@ class Session(ndb.Model):
     name = ndb.StringProperty(required=True)
     highlights = ndb.StringProperty()
     speaker = ndb.StringProperty()
-    durationTime = ndb.TimeProperty(required=True)
+    durationMinutes = ndb.IntegerProperty(required=True)
     typeOfSession = ndb.StringProperty()
     date = ndb.DateProperty(required=True)
     startTime = ndb.TimeProperty(required=True)
@@ -140,9 +140,7 @@ class Session(ndb.Model):
 
     def get_session_end_time(self):
         start_datetime = datetime.combine(self.date, self.startTime)
-        duration_h = self.durationTime.strftime('%-H')
-        duration_m = self.durationTime.strftime('%-M')
-        endtime = start_datetime + timedelta(hours=int(duration_h), minutes=int(duration_m))
+        endtime = start_datetime + timedelta(minutes=self.durationMinutes)
         return endtime
 
     def get_before_seven(self):
@@ -157,7 +155,7 @@ class SessionForm(messages.Message):
     name = messages.StringField(1)
     highlights = messages.StringField(2)
     speaker = messages.StringField(3)
-    durationTime = messages.StringField(4)
+    durationMinutes = messages.IntegerField(4)
     typeOfSession = messages.StringField(5)
     date = messages.StringField(6)
     startTime = messages.StringField(7)
